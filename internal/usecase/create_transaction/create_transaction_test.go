@@ -2,11 +2,14 @@ package create_transaction
 
 import (
 	"errors"
+	"testing"
+
 	"github.com.br/devfullcycle/fc-ms-wallet/internal/entity"
+	"github.com.br/devfullcycle/fc-ms-wallet/internal/event"
+	"github.com.br/devfullcycle/fc-ms-wallet/pkg/events"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"testing"
 )
 
 func IsValidUUID(u string) bool {
@@ -51,7 +54,10 @@ func TestCreateTransactionUseCase_Execute(t *testing.T) {
 	accountGatewayMock.On("FindByID", account2.ID).Return(account2, nil)
 	transactionGatewayMock.On("Create", mock.Anything).Return(nil)
 
-	uc := NewCreateTransactionUseCase(transactionGatewayMock, accountGatewayMock)
+	dispatcher := events.NewEventDispatcher()
+	event := event.NewTransactionCreated()
+
+	uc := NewCreateTransactionUseCase(transactionGatewayMock, accountGatewayMock, dispatcher, event)
 	inputDto := CreateTransactionInputDTO{
 		AccountIDFrom: account1.ID,
 		AccountIDTo:   account2.ID,
@@ -80,7 +86,11 @@ func TestCreateTransactionUseCase_ExecuteWithInvalidAccountIds(t *testing.T) {
 	accountGatewayMock := &AccountGatewayMock{}
 	accountGatewayMock.On("FindByID", account1.ID).Return(account1, errors.New(mock.Anything))
 
-	uc := NewCreateTransactionUseCase(transactionGatewayMock, accountGatewayMock)
+	dispatcher := events.NewEventDispatcher()
+	event := event.NewTransactionCreated()
+
+	uc := NewCreateTransactionUseCase(transactionGatewayMock, accountGatewayMock,
+		dispatcher, event)
 	inputDto := CreateTransactionInputDTO{
 		AccountIDFrom: account1.ID,
 		AccountIDTo:   account2.ID,
@@ -97,7 +107,7 @@ func TestCreateTransactionUseCase_ExecuteWithInvalidAccountIds(t *testing.T) {
 
 	accountGatewayMock.On("FindByID", account2.ID).Return(account2, errors.New(mock.Anything))
 
-	uc = NewCreateTransactionUseCase(transactionGatewayMock, accountGatewayMock)
+	uc = NewCreateTransactionUseCase(transactionGatewayMock, accountGatewayMock, dispatcher, event)
 	output, err = uc.Execute(inputDto)
 
 	assert.NotNil(t, err)
@@ -117,7 +127,10 @@ func TestCreateTransactionUseCase_ExecuteWithInvalidTransaction(t *testing.T) {
 	accountGatewayMock.On("FindByID", account1.ID).Return(account1, nil)
 	accountGatewayMock.On("FindByID", account2.ID).Return(account2, nil)
 
-	uc := NewCreateTransactionUseCase(transactionGatewayMock, accountGatewayMock)
+	dispatcher := events.NewEventDispatcher()
+	event := event.NewTransactionCreated()
+
+	uc := NewCreateTransactionUseCase(transactionGatewayMock, accountGatewayMock, dispatcher, event)
 	inputDto := CreateTransactionInputDTO{
 		AccountIDFrom: account1.ID,
 		AccountIDTo:   account2.ID,
@@ -147,7 +160,10 @@ func TestCreateTransactionUseCase_ExecuteWithErrorOnGateway(t *testing.T) {
 	accountGatewayMock.On("FindByID", account2.ID).Return(account2, nil)
 	transactionGatewayMock.On("Create", mock.Anything).Return(errors.New(mock.Anything))
 
-	uc := NewCreateTransactionUseCase(transactionGatewayMock, accountGatewayMock)
+	dispatcher := events.NewEventDispatcher()
+	event := event.NewTransactionCreated()
+
+	uc := NewCreateTransactionUseCase(transactionGatewayMock, accountGatewayMock, dispatcher, event)
 	inputDto := CreateTransactionInputDTO{
 		AccountIDFrom: account1.ID,
 		AccountIDTo:   account2.ID,
