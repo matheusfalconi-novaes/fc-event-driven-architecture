@@ -43,12 +43,12 @@ func (a *AccountDB) FindByID(id string) (*entity.Account, error) {
 }
 
 func (a *AccountDB) Save(account *entity.Account) error {
-	stmt, err := a.DB.Prepare("INSERT INTO accounts (id, client_id, balance, created_at) VALUES (?, ?, ?, ?)")
+	stmt, err := a.DB.Prepare("INSERT INTO accounts (id, client_id, balance, created_at, updated_at) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(account.ID, account.Client.ID, account.Balance, account.CreatedAt)
+	_, err = stmt.Exec(account.ID, account.Client.ID, account.Balance, account.CreatedAt, account.UpdatedAt)
 	if err != nil {
 		return err
 	}
@@ -56,12 +56,12 @@ func (a *AccountDB) Save(account *entity.Account) error {
 }
 
 func (a *AccountDB) UpdateBalance(account *entity.Account) error {
-	stmt, err := a.DB.Prepare("UPDATE accounts SET balance = ? WHERE id = ?")
+	stmt, err := a.DB.Prepare("UPDATE accounts SET balance = ?, updated_at = ? WHERE id = ?")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(account.Balance, account.ID)
+	_, err = stmt.Exec(account.Balance, account.UpdatedAt, account.ID)
 	if err != nil {
 		return err
 	}

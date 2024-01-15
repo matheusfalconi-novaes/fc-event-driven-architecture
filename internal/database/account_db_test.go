@@ -19,8 +19,8 @@ func (s *AccountDBTestSuite) SetupSuite() {
 	db, err := sql.Open("sqlite3", ":memory:")
 	s.Nil(err)
 	s.db = db
-	db.Exec("Create table clients (id varchar(255), name varchar(255), email varchar(255), created_at date)")
-	db.Exec("Create table accounts (id varchar(255), client_id varchar(255), balance int, created_at date)")
+	db.Exec("Create table clients (id varchar(255), name varchar(255), email varchar(255), created_at date, updated_at date)")
+	db.Exec("Create table accounts (id varchar(255), client_id varchar(255), balance int, created_at date, updated_at date)")
 	s.accountDB = NewAccountDB(db)
 	s.client, _ = entity.NewClient("John", "j@j.com")
 }
@@ -42,8 +42,8 @@ func (s *AccountDBTestSuite) TestSave() {
 }
 
 func (s *AccountDBTestSuite) TestFindByID() {
-	s.db.Exec("Insert into clients (id, name, email, created_at) values (?, ?, ?, ?)",
-		s.client.ID, s.client.Name, s.client.Email, s.client.CreatedAt,
+	s.db.Exec("Insert into clients (id, name, email, created_at, updated_at) values (?, ?, ?, ?, ?)",
+		s.client.ID, s.client.Name, s.client.Email, s.client.CreatedAt, s.client.UpdatedAt,
 	)
 	account, _ := entity.NewAccount(s.client)
 	err := s.accountDB.Save(account)
