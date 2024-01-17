@@ -30,10 +30,12 @@ func TestCreateTransactionUseCase_Execute(t *testing.T) {
 	mockUow.On("Do", mock.Anything, mock.Anything).Return(nil)
 
 	dispatcher := events.NewEventDispatcher()
-	event := event.NewTransactionCreated()
+	transactionEvent := event.NewTransactionCreated()
+	balanceEvent := event.NewBalanceUpdated()
+
 	ctx := context.Background()
 
-	uc := NewCreateTransactionUseCase(mockUow, dispatcher, event)
+	uc := NewCreateTransactionUseCase(mockUow, dispatcher, transactionEvent, balanceEvent)
 	inputDto := CreateTransactionInputDTO{
 		AccountIDFrom: account1.ID,
 		AccountIDTo:   account2.ID,

@@ -34,9 +34,11 @@ func main() {
 	kafkaProducer := kafka.NewKafkaProducer(&configMap)
 
 	transactionCreatedEvent := event.NewTransactionCreated()
+	balanceUpdatedEvent := event.NewBalanceUpdated()
 
 	eventDispatcher := events.NewEventDispatcher()
 	eventDispatcher.Register(transactionCreatedEvent.GetName(), handler.NewTransactionCreatedKafkaHandler(kafkaProducer))
+	eventDispatcher.Register(balanceUpdatedEvent.GetName(), handler.NewUpdateBalanceKafkaHandler(kafkaProducer))
 
 	clientDb := database.NewClientDB(db)
 	accountDb := database.NewAccountDB(db)
@@ -57,6 +59,7 @@ func main() {
 		unitOfWork,
 		eventDispatcher,
 		transactionCreatedEvent,
+		balanceUpdatedEvent,
 	)
 
 	webServer := web_server.NewWebServer(":8080")

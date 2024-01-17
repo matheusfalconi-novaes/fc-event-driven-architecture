@@ -22,26 +22,37 @@ type CreateTransactionOutputDTO struct {
 	Amount        float64 `json:"amount"`
 }
 
+type BalanceUpdatedOutputDTO struct {
+	AccountIDFrom        string  `json:"account_id_from"`
+	AccountIDTo          string  `json:"account_id_to"`
+	BalanceAccountIDFrom float64 `json:"balance_account_id_from"`
+	BalanceAccountIdTo   float64 `json:"balance_account_id_to"`
+}
+
 type CreateTransactionUseCase struct {
 	UnitOfWork         unityofwork.UnityOfWorkInterface
 	EventDispatcher    events.EventDispatcherInterface
 	TransactionCreated events.EventInterface
+	BalanceUpdated     events.EventInterface
 }
 
 func NewCreateTransactionUseCase(
 	unitOfWork unityofwork.UnityOfWorkInterface,
 	eventDispatcher events.EventDispatcherInterface,
 	transactionCreated events.EventInterface,
+	balanceUpdated events.EventInterface,
 ) *CreateTransactionUseCase {
 	return &CreateTransactionUseCase{
 		UnitOfWork:         unitOfWork,
 		EventDispatcher:    eventDispatcher,
 		TransactionCreated: transactionCreated,
+		BalanceUpdated:     balanceUpdated,
 	}
 }
 
 func (uc *CreateTransactionUseCase) Execute(ctx context.Context, input CreateTransactionInputDTO) (*CreateTransactionOutputDTO, error) {
-	output := &CreateTransactionOutputDTO{}
+	transactionOutput := &CreateTransactionOutputDTO{}
+	balanceOutput := &BalanceUpdatedOutputDTO{}
 	err := uc.UnitOfWork.Do(ctx, func(_ *unityofwork.UnityOfWork) error {
 		accountGateway := uc.getAccountGateway(ctx)
 		transactionGateway := uc.getTransactionGateway(ctx)
@@ -70,10 +81,15 @@ func (uc *CreateTransactionUseCase) Execute(ctx context.Context, input CreateTra
 		if err != nil {
 			return err
 		}
-		output.ID = transaction.ID
-		output.AccountIDFrom = input.AccountIDFrom
-		output.AccountIDTo = input.AccountIDTo
-		output.Amount = input.Amount
+		transactionOutput.ID = transaction.ID
+		transactionOutput.AccountIDFrom = input.AccountIDFrom
+		transactionOutput.AccountIDTo = input.AccountIDTo
+		transactionOutput.Amount = input.Amount
+
+		balanceOutput.AccountIDFrom = input.AccountIDFrom
+		balanceOutput.AccountIDTo = input.AccountIDTo
+		balanceOutput.BalanceAccountIDFrom = accountFrom.Balance
+		balanceOutput.BalanceAccountIdTo = accountTo.Balance
 		return nil
 	})
 
@@ -81,10 +97,13 @@ func (uc *CreateTransactionUseCase) Execute(ctx context.Context, input CreateTra
 		return nil, err
 	}
 
-	uc.TransactionCreated.SetPayload(output)
+	uc.TransactionCreated.SetPayload(transactionOutput)
 	uc.EventDispatcher.Dispatch(uc.TransactionCreated)
 
-	return output, nil
+	uc.BalanceUpdated.SetPayload(balanceOutput)
+	uc.EventDispatcher.Dispatch(uc.BalanceUpdated)
+
+	return transactionOutput, nil
 }
 
 func (uc *CreateTransactionUseCase) getAccountGateway(ctx context.Context) gateway.AccountGateway {
