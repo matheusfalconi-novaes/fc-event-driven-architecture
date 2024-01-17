@@ -3,13 +3,15 @@ package event
 import "time"
 
 type TransactionCreated struct {
-	Name    string
-	Payload interface{}
+	Name     string
+	Payload  interface{}
+	DateTime time.Time
 }
 
 func NewTransactionCreated() *TransactionCreated {
 	return &TransactionCreated{
-		Name: "TransactionCreated",
+		Name:     "TransactionCreated",
+		DateTime: time.Now(),
 	}
 }
 
@@ -18,7 +20,7 @@ func (e *TransactionCreated) GetName() string {
 }
 
 func (e *TransactionCreated) GetDateTime() time.Time {
-	return time.Now()
+	return e.DateTime
 }
 
 func (e *TransactionCreated) GetPayload() interface{} {
