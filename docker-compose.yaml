@@ -1,16 +1,18 @@
 version: '3'
 
 services:
-  goapp: 
-    build: .
+  wallet-core: 
+    build: wallet-core/.
+    container_name: wallet-core
     platform: linux/amd64
     volumes:
-      - .:/app
+      - ./wallet-core/:/app
     ports:
       - 8080:8080
 
   mysql:
     image: mysql:5.7
+    container_name: db
     platform: linux/amd64
     environment:
       MYSQL_ROOT_PASSWORD: root
