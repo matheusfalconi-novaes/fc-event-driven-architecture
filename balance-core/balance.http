@@ -1,0 +1,8 @@
+### find-last-user-balance - John Doe
+
+GET http://localhost:3003/balances/34d4d2ca-ac3e-4b49-b85f-a012d6ef1e78 HTTP/1.1
+
+
+### find-last-user-balance  - Jane Doe
+
+GET http://localhost:3003/balances/34d4d2ca-ac3e-4b49-b85f-a012d6ef1e78 HTTP/1.1
