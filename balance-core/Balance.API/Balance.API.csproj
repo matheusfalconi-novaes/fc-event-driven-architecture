@@ -8,20 +8,20 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Balance.Domain\Balance.Domain.csproj" />
-      <ProjectReference Include="..\Balance.Infrastructure\Balance.Infrastructure.csproj" />
+        <ProjectReference Include="..\Balance.Domain\Balance.Domain.csproj"/>
+        <ProjectReference Include="..\Balance.Infrastructure\Balance.Infrastructure.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Confluent.Kafka" Version="2.3.0" />
-      <PackageReference Include="Confluent.SchemaRegistry.Serdes.Json" Version="2.3.0" />
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+        <PackageReference Include="Confluent.Kafka" Version="2.3.0"/>
+        <PackageReference Include="Confluent.SchemaRegistry.Serdes.Json" Version="2.3.0"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
     </ItemGroup>
 
 </Project>

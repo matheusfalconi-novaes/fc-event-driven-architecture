@@ -1,4 +1,3 @@
-
 namespace Balance.Domain.Gateway;
 
 public record BalanceData(string AccountId, float Balance, DateTime OperationDateTime);

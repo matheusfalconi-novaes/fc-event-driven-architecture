@@ -11,7 +11,8 @@ public record BalanceUpdatedEventPayload
     [JsonProperty("balance_account_to")] public float BalanceAccountTo { get; set; }
 }
 
-public record BalanceUpdatedEvent(BalanceUpdatedEventPayload Payload, DateTime DateTime) : DomainEvent(Payload, DateTime)
+public record BalanceUpdatedEvent(BalanceUpdatedEventPayload Payload, DateTime DateTime)
+    : DomainEvent(Payload, DateTime)
 {
     public const string EventName = "BalanceUpdated";
     public override string Name => EventName;

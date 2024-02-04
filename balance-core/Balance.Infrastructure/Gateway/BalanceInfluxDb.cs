@@ -49,7 +49,7 @@ public class BalanceInfluxDb(IOptions<BalanceInfluxDbConfiguration> configuratio
         if (!float.TryParse(lastBalance?.GetValue().ToString(), out var parsedValue) ||
             !DateTime.TryParse(lastBalance.GetTimeInDateTime().ToString(), out var parsedDate))
             return null;
-        
+
         return new BalanceData(accountId, parsedValue, parsedDate);
     }
 }

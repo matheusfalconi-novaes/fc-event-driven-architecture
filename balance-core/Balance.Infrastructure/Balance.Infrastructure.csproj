@@ -7,12 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Balance.Domain\Balance.Domain.csproj" />
+        <ProjectReference Include="..\Balance.Domain\Balance.Domain.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="InfluxDB.Client" Version="4.14.0" />
-      <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.1" />
+        <PackageReference Include="InfluxDB.Client" Version="4.14.0"/>
+        <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.1"/>
     </ItemGroup>
 
 </Project>

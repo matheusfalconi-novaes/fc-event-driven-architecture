@@ -9,17 +9,18 @@ namespace Balance.API.Event.Handler;
 internal class BalanceUpdatedConsumer(IOptions<KafkaConfig> configuration, ILogger<BalanceUpdatedConsumer> logger)
     : EventMessageConsumer<BalanceUpdatedEvent>(configuration, logger)
 {
-    public new BalanceUpdatedEvent? Consume(CancellationToken cancellationToken = default) 
+    public new BalanceUpdatedEvent? Consume(CancellationToken cancellationToken = default)
         => base.Consume(cancellationToken);
-    
 }
 
-public class BalanceUpdatedService(IMessageConsumer<BalanceUpdatedEvent> messageConsumer, 
-    IBalanceGateway balanceGateway, ILogger<BalanceUpdatedService> logger) : BackgroundService
+public class BalanceUpdatedService(
+    IMessageConsumer<BalanceUpdatedEvent> messageConsumer,
+    IBalanceGateway balanceGateway,
+    ILogger<BalanceUpdatedService> logger) : BackgroundService
 {
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
         => Task.Run(() => ProcessBalance(stoppingToken), stoppingToken);
-    
+
     private async Task ProcessBalance(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -30,7 +31,7 @@ public class BalanceUpdatedService(IMessageConsumer<BalanceUpdatedEvent> message
                 logger.LogWarning("Message contains null value.");
                 continue;
             }
-            
+
             var eventPayload = @event.Payload;
             var balances = new[]
             {
@@ -42,7 +43,7 @@ public class BalanceUpdatedService(IMessageConsumer<BalanceUpdatedEvent> message
 
         logger.LogDebug($"{nameof(BalanceUpdatedService)} background task is stopping.");
     }
-    
+
     public override void Dispose()
     {
         messageConsumer.Dispose();
