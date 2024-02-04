@@ -1,6 +1,6 @@
 ### find-last-user-balance - John Doe
 
-GET http://localhost:3003/balances/34d4d2ca-ac3e-4b49-b85f-a012d6ef1e78 HTTP/1.1
+GET http://localhost:3003/balances/0e8be345-2428-4fdd-80af-935685b34c98 HTTP/1.1
 
 
 ### find-last-user-balance  - Jane Doe
