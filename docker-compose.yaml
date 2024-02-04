@@ -4,40 +4,95 @@ services:
   wallet-core: 
     build: wallet-core/.
     container_name: wallet-core
+    depends_on:
+      mysql-init:
+        condition: service_completed_successfully
+      kafka-init:
+        condition: service_completed_successfully
     platform: linux/amd64
-    volumes:
-      - ./wallet-core/:/app
     ports:
-      - 8080:8080
+      - '8080:8080'
+  
+  balance-core:
+    build: 
+      context: balance-core/.
+      dockerfile: Balance.API/Dockerfile
+    container_name: balance-core
+    depends_on:
+      influx-init:
+        condition: service_completed_successfully
+      kafka-init:
+          condition: service_completed_successfully
+    platform: linux/amd64
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: http://+:3003
+      InfluxDB__Token: '-SpGFXo8Z3BMBcRd7W5U-8TbgDJ3dzfr4cPu3n4F-12DQzoPbvwRFpRmBYX8kJUQUZPiVbC_RU55QcXM6ljHig=='
+      InfluxDB__Organization: 'organization'
+      InfluxDB__BucketName: 'bucket-data'
+      KafkaConfig__Topic: 'balances'
+    ports:
+      - '3003:3003'
 
-  mysql:
+  mysql-db:
     image: mysql:5.7
-    container_name: db
+    container_name: mysql-db
     platform: linux/amd64
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: wallet
       MYSQL_PASSWORD: root
     ports:
-      - 3306:3306
+      - '3306:3306'
     volumes:
       - .docker/mysql:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 5
+  
+  influx-db:
+    image: influxdb:2.0.7
+    container_name: influx-db
+    hostname: influx-db
+    ports:
+      - '8086:8086'
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: 'setup'
+      DOCKER_INFLUXDB_INIT_USERNAME: 'root'
+      DOCKER_INFLUXDB_INIT_PASSWORD: 'dzfr4cPu3'
+      DOCKER_INFLUXDB_INIT_ORG: 'organization'
+      DOCKER_INFLUXDB_INIT_BUCKET: 'bucket-data'
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: '-SpGFXo8Z3BMBcRd7W5U-8TbgDJ3dzfr4cPu3n4F-12DQzoPbvwRFpRmBYX8kJUQUZPiVbC_RU55QcXM6ljHig=='
+    volumes:
+      - .docker/influxdb:/var/lib/influxdb2/
+    healthcheck:
+      test: "curl -f http://localhost:8086/ping"
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   zookeeper:
     image: "confluentinc/cp-zookeeper:6.1.0"
     container_name: zookeeper
     ports:
-      - 2181:2181
+      - '2181:2181'
     environment:
       TZ: Sao_Paulo/Brazil
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: nc -z localhost 2181 || exit -1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
 
   kafka:
     image: "confluentinc/cp-enterprise-kafka:6.1.0"
     container_name: kafka
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     ports:
     # Exposes 9092 for external connections to the broker
     # Use kafka:29092 for connections internal on the docker network
@@ -47,15 +102,20 @@ services:
       TZ: Sao_Paulo/Brazil
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CLIENT:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: CLIENT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092,CLIENT://kafka:29093
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
       CONFLUENT_METRICS_ENABLE: 'false'
+    healthcheck:
+      test: nc -z localhost 9092 || exit -1
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   control-center:
     image: confluentinc/cp-enterprise-control-center:7.3.0
@@ -64,7 +124,7 @@ services:
     depends_on:
       - kafka
     ports:
-      - "9021:9021"
+      - '9021:9021'
     environment:
       CONTROL_CENTER_BOOTSTRAP_SERVERS: 'kafka:29092'
       CONTROL_CENTER_REPLICATION_FACTOR: 1
@@ -72,3 +132,58 @@ services:
       CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
       CONFLUENT_METRICS_TOPIC_REPLICATION: 1
       PORT: 9021
+  
+  kafka-init:
+    image: "confluentinc/cp-enterprise-kafka:6.1.0"
+    container_name: kafka-init
+    command: [ "sh", "/create_topic.sh"]
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      TOPIC_NAME: 'balances'
+    depends_on: 
+      kafka:
+        condition: service_healthy
+    volumes:
+      - type: bind
+        source: ./data/create_topic.sh
+        target: /create_topic.sh
+    init: true
+    
+  
+  mysql-init:
+    image: mysql:5.7
+    container_name: mysql-init
+    command: [ "sh", "/populate_data.sh" ]
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    volumes:
+      - type: bind
+        source: ./data/mysql/wallet-db.sql
+        target: /wallet-db.sql
+      - type: bind
+        source: ./data/mysql/populate_data.sh
+        target: /populate_data.sh
+    init: true
+    
+
+  influx-init:
+    image: influxdb:2.0.7
+    container_name: influx-init
+    command: [ "sh", "/populate_influxdb.sh" ]
+    environment:
+      INFLUX_TOKEN: -SpGFXo8Z3BMBcRd7W5U-8TbgDJ3dzfr4cPu3n4F-12DQzoPbvwRFpRmBYX8kJUQUZPiVbC_RU55QcXM6ljHig==
+      INFLUX_HOST: http://influx-db:8086
+    depends_on:
+      influx-db:
+        condition: service_healthy
+    volumes:
+      - type: bind
+        source: ./data/influx/populate_data
+        target: /populate_data/
+      - type: bind
+        source: ./data/influx/populate_influxdb.sh
+        target: /populate_influxdb.sh
+    init: true
