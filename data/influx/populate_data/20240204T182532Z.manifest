@@ -1,0 +1,18 @@
+{
+  "kv": {
+    "fileName": "20240204T182532Z.bolt",
+    "size": 45056
+  },
+  "files": [
+    {
+      "organizationID": "9947a70b5d9b95ab",
+      "organizationName": "organization",
+      "bucketID": "880d79704c8d56f1",
+      "bucketName": "bucket-data",
+      "shardID": 1,
+      "fileName": "20240204T182532Z.s1.tar.gz",
+      "size": 344,
+      "lastModified": "2024-02-04T18:25:32.209072481Z"
+    }
+  ]
+}

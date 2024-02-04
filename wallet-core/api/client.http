@@ -1,3 +1,4 @@
+### create-client
 POST http://localhost:8080/clients HTTP/1.1
 Content-Type: application/json
 
@@ -6,20 +7,20 @@ Content-Type: application/json
     "email": "john@j.com"
 }
 
-###
+### create-client-account
 POST http://localhost:8080/accounts HTTP/1.1
 Content-Type: application/json
 
 {
-    "client_id": "b35a669f-8ecf-453a-90dc-a97901941dcd"
+    "client_id": "97d526b4-cf3c-4e50-9457-a073f5ad2916"
 }
 
-###
+### create-transaction
 POST http://localhost:8080/transactions HTTP/1.1
 Content-Type: application/json
 
 {
-    "account_id_from": "91c3da84-0ee8-49cd-90d1-1900859a9a48",
-    "account_id_to": "d9990d04-c251-433b-bdde-baedb8a3a979",
-    "amount": 100
+    "account_id_from": "34d4d2ca-ac3e-4b49-b85f-a012d6ef1e78",
+    "account_id_to": "0e8be345-2428-4fdd-80af-935685b34c98",
+    "amount": 50
 }
