@@ -4,4 +4,12 @@ WORKDIR /app/
 
 RUN apt-get update && apt-get install -y librdkafka-dev
 
-CMD ["tail", "-f", "/dev/null"]
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
+
+COPY ./ ./
+
+WORKDIR /app/cmd/wallet-core/
+RUN go build -o web-server
+
+CMD ["./web-server"]
